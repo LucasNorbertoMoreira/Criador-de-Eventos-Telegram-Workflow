@@ -20,7 +20,7 @@
       "credentials": {
         "telegramApi": {
           "id": "jgTFLkAjlHR4c665",
-          "name": "Assistente IA"
+          "name": "Criador de Eventos"
         }
       }
     },
@@ -35,7 +35,7 @@
         "messages": {
           "values": [
             {
-              "content": "=Sua tarefa é extrair informações de um texto para criar um evento de calendário. Analise o texto do utilizador e retorne APENAS um objeto JSON. O JSON deve ter as seguintes chaves: \"titulo\", \"data\" (no formato AAAA-MM-DD) e \"hora\" (no formato HH:MM). A data de hoje é 26 de Julho de 2025.\n\nExemplo:\nTexto do Utilizador: \"Marcar reunião sobre N8N com a equipa na próxima sexta-feira às 14h\"\nSua Resposta:\n{\n  \"titulo\": \"Reunião sobre N8N com a equipa\",\n  \"data\": \"2025-08-01\",\n  \"hora\": \"14:00\"\n}\n\nTexto do Utilizador para analisar: \"{{$json.message.text}}\"\n\nAgora, forneça o objeto JSON para o texto do utilizador. Não inclua nenhuma outra palavra ou explicação na sua resposta, apenas o código JSON.\n\nLeve em conta que o dia de hoje é:{{ $today }}"
+              "content": "=### TAREFA\nVocê é um especialista em analisar textos para agendar eventos. Sua função é extrair \"titulo\", \"data\", \"hora\" e \"hora_fim\" do texto do usuário e formatá-los em um objeto JSON.\n\n### REGRAS\n1.  **Formato da Data:** A data deve ser SEMPRE no formato AAAA-MM-DD.\n2.  **Formato da Hora:** A hora deve ser SEMPRE no formato HH:MM (formato 24h).\n3.  **Data Padrão:** Se a data não for mencionada, use a data de hoje: {{ $today }}.\n4.  **Hora Padrão:** Se a hora de início não for mencionada, use \"09:00\".\n5.  **Hora de Fim Padrão:** Se a duração ou hora de fim não forem mencionadas, a \"hora_fim\" deve ser exatamente 1 hora após a \"hora\" de início.\n\n### EXEMPLO\n- **Texto do Utilizador:** \"Marcar reunião sobre N8N com a equipa na próxima sexta-feira às 14h\"\n- **Sua Resposta:**\n{\n  \"titulo\": \"Reunião sobre N8N com a equipa\",\n  \"data\": \"2025-09-19\",\n  \"hora\": \"14:00\",\n  \"hora_fim\": \"15:00\"\n}\n\n### SAÍDA\nAnalise o \"Texto do Utilizador\" abaixo e retorne APENAS o objeto JSON final. Não inclua ```json, explicações ou qualquer outra palavra.\n\nTexto do Utilizador: \"{{$json.message.text}}\""
             }
           ]
         },
@@ -63,7 +63,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        320,
+        480,
         0
       ],
       "id": "3bf14bfb-cdb2-4f81-9d7a-debab34f20c5",
@@ -78,7 +78,7 @@
           "cachedResultName": "lucasnorbertomoreira@gmail.com"
         },
         "start": "={{$json.data}}T{{$json.hora}}:00-03:00",
-        "end": "={{$json.data}}T{{$json.hora}}:00-03:00",
+        "end": "={{$json.data}}T{{ $json.hora_fim }}:00-03:00",
         "additionalFields": {
           "summary": "={{$json.titulo}}"
         }
@@ -86,7 +86,7 @@
       "type": "n8n-nodes-base.googleCalendar",
       "typeVersion": 1.3,
       "position": [
-        1232,
+        1280,
         -16
       ],
       "id": "0aae9d6f-0c57-4f66-a7f5-960f6bb52393",
@@ -100,28 +100,14 @@
     },
     {
       "parameters": {
-        "amount": 3
-      },
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        1440,
-        -16
-      ],
-      "id": "b062318c-1b4a-4e90-85b2-cd9d78acec20",
-      "name": "Wait",
-      "webhookId": "583c0595-7393-44fc-8835-1ff3eb4f53cb"
-    },
-    {
-      "parameters": {
         "promptType": "define",
-        "text": "=  Você vai verificar se os eventos foram marcados corretamente de acordo com esses parâmetros: Summary: {{ $json.summary }} Start:{{ $json.start.dateTime }}  End: {{ $json.end.dateTime }}. Se você encontrar, diga que o evento foi criado com sucesso! Se não, diga que não encontrou nenhum evento e que eu deveria rever o workflow. Não precisa dizer que encontrou, apenas que foi criado. Fale \"O evento \"(nome do evento)\" para dia XY/AZ às XY:ZA foi criado com sucesso!\" Se o horário for igual a 09:00, não coloque-o, é um horário padrão",
+        "text": "=### TAREFA\nVocê é um assistente de confirmação de eventos. Sua única função é criar uma mensagem de sucesso amigável para o usuário com base nos dados do evento que foram criados no calendário.\n\n### DADOS DO EVENTO CRIADO\n- Título: {{ $json.summary }}\n- Início: {{ $json.start.dateTime }}\n- Fim: {{ $json.end.dateTime }}\n\n### REGRAS PARA A MENSAGEM\n1.  **Formato Base:** A mensagem deve seguir o formato: \"O evento '[Título]' para o dia DD/MM/AAAA às HH:MM foi criado com sucesso!\"\n2.  **Use o Horário de Início:** Você DEVE usar a data e a hora de **Início** para preencher a mensagem. Ignore completamente a data e a hora de Fim.\n3.  **Regra da Hora Padrão:** Se a hora de **Início** for exatamente \"09:00\", omita a parte \"às HH:MM\" da mensagem. A frase final deve ser: \"O evento '[Título]' para o dia DD/MM/AAAA foi criado com sucesso!\"\n4.  **Formatação:** A data deve ser formatada como DD/MM/AAAA e a hora como HH:MM. Adicione um emoji de sucesso (✅ ou 🗓️) no final.\n\n### EXEMPLOS\n- **Dados:** { \"summary\": \"Reunião de Equipa\", \"start\": { \"dateTime\": \"2025-09-19T14:00:00-03:00\" } }\n- **Saída Esperada:** O evento \"Reunião de Equipa\" para o dia 19/09/2025 às 14:00 foi criado com sucesso! ✅\n\n- **Dados:** { \"summary\": \"Ligar para o cliente\", \"start\": { \"dateTime\": \"2025-09-20T09:00:00-03:00\" } }\n- **Saída Esperada:** O evento \"Ligar para o cliente\" para o dia 20/09/2025 foi criado com sucesso! 🗓️\n\n### SAÍDA FINAL\nAgora, crie a mensagem de confirmação para os dados fornecidos. Retorne APENAS a mensagem final, sem nenhuma outra palavra ou explicação.",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.1,
       "position": [
-        1648,
+        1440,
         -16
       ],
       "id": "839eb9d2-ecbc-46c1-a5d9-410a813461c8",
@@ -135,8 +121,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        1648,
-        192
+        1440,
+        144
       ],
       "id": "160541ff-ec7a-40e1-b7ae-78f689a3c6f4",
       "name": "Google Gemini Chat Model",
@@ -158,7 +144,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2016,
+        1744,
         -16
       ],
       "id": "46d83612-31b1-42d0-8af2-3ff81cff0073",
@@ -167,7 +153,7 @@
       "credentials": {
         "telegramApi": {
           "id": "jgTFLkAjlHR4c665",
-          "name": "Assistente IA"
+          "name": "Criador de Eventos"
         }
       }
     },
@@ -186,8 +172,8 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        1840,
-        192
+        1584,
+        144
       ],
       "id": "7157f9ab-68b8-4fa3-ac97-a84ccc78d56e",
       "name": "Get an event in Google Calendar",
@@ -236,7 +222,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        480,
+        688,
         0
       ],
       "id": "932c0f3c-0b32-4018-a9a6-55c06167c087",
@@ -299,7 +285,7 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        704,
+        880,
         112
       ],
       "id": "098fab3a-22f6-4040-b6bd-5bd9a9e44132",
@@ -334,7 +320,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        928,
+        1072,
         80
       ],
       "id": "298adc3e-d8f3-41ab-9b13-a7475fc081eb",
@@ -369,11 +355,51 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        928,
+        1072,
         224
       ],
       "id": "aa60bf02-76eb-41e3-90c3-23788ca48576",
       "name": "Editar Hora"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.content.parts[0].text }}",
+                    "rightValue": "=false",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "notEquals"
+                    },
+                    "id": "4aaf6ff4-5aaf-4c67-b812-235d2e29b8b3"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        304,
+        0
+      ],
+      "id": "b61d5873-8f68-47a7-8ad1-f0a6f118de4b",
+      "name": "Switch1"
     }
   ],
   "pinData": {},
@@ -393,7 +419,7 @@
       "main": [
         [
           {
-            "node": "Code",
+            "node": "Switch1",
             "type": "main",
             "index": 0
           }
@@ -412,17 +438,6 @@
       ]
     },
     "Create an event": {
-      "main": [
-        [
-          {
-            "node": "Wait",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait": {
       "main": [
         [
           {
@@ -523,13 +538,24 @@
           }
         ]
       ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "d6f472e5-9af3-4a43-8d56-b944b2f577c5",
+  "versionId": "b53b5ce3-f826-4b5d-ba23-d27401df83c0",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "02b09b37f4a80947d5ee73523cb2395e857666552ba96202e35e42c6e92dc998"
