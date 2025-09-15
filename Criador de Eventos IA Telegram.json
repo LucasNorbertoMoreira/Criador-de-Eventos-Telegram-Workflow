@@ -51,7 +51,7 @@
       "name": "Message a model",
       "credentials": {
         "googlePalmApi": {
-          "id": "VYFYMaSnJY7FE5A0",
+          "id": "",
           "name": "Google Gemini(PaLM) Api account"
         }
       }
@@ -73,9 +73,9 @@
       "parameters": {
         "calendar": {
           "__rl": true,
-          "value": "lucasnorbertomoreira@gmail.com",
+          "value": "seuemailaqui@gmail.com",
           "mode": "list",
-          "cachedResultName": "lucasnorbertomoreira@gmail.com"
+          "cachedResultName": "seuemailaqui@gmail.com"
         },
         "start": "={{$json.data}}T{{$json.hora}}:00-03:00",
         "end": "={{$json.data}}T{{ $json.hora_fim }}:00-03:00",
@@ -93,7 +93,7 @@
       "name": "Create an event",
       "credentials": {
         "googleCalendarOAuth2Api": {
-          "id": "amSfNZoKicU2bzP4",
+          "id": "",
           "name": "Google Calendar account"
         }
       }
@@ -128,7 +128,7 @@
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
-          "id": "VYFYMaSnJY7FE5A0",
+          "id": "",
           "name": "Google Gemini(PaLM) Api account"
         }
       }
@@ -152,7 +152,7 @@
       "webhookId": "4c7abe9c-5129-44c5-b100-222591be5790",
       "credentials": {
         "telegramApi": {
-          "id": "jgTFLkAjlHR4c665",
+          "id": "",
           "name": "Criador de Eventos"
         }
       }
@@ -164,7 +164,7 @@
           "__rl": true,
           "value": "lucasnorbertomoreira@gmail.com",
           "mode": "list",
-          "cachedResultName": "lucasnorbertomoreira@gmail.com"
+          "cachedResultName": "seuemailaqui@gmail.com"
         },
         "eventId": "={{ $('Create an event').item.json.id }}",
         "options": {}
@@ -179,7 +179,7 @@
       "name": "Get an event in Google Calendar",
       "credentials": {
         "googleCalendarOAuth2Api": {
-          "id": "amSfNZoKicU2bzP4",
+          "id": "",
           "name": "Google Calendar account"
         }
       }
